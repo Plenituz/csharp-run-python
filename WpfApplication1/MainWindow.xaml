@@ -1,0 +1,30 @@
+﻿<Window x:Class="PythonRunnerExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PythonRunnerExample"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBox Name="PYText" Grid.Row="0" AcceptsTab="True" TextWrapping="Wrap" AcceptsReturn="True">python code here</TextBox>
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+        <TextBlock Name="StdoutDisp" Grid.Row="0" Grid.Column="2" TextWrapping="Wrap"/>
+        <Button Grid.Row="1" Grid.ColumnSpan="3" Click="Button_Click">Run code</Button>
+    </Grid>
+
+
+
+
+
+
+</Window>
