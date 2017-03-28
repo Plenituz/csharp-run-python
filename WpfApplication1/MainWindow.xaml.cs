@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Diagnostics;
-using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using PythonRunnerNameSpace;
-using System.Windows.Media.Imaging;
-using System.Windows.Media;
-using System.Reflection;
 
 namespace PythonRunnerExample
 {
