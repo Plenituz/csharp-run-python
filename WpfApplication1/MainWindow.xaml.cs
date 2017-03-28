@@ -5,6 +5,9 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using PythonRunnerNameSpace;
+using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using System.Reflection;
 
 namespace PythonRunnerExample
 {
@@ -16,19 +19,20 @@ namespace PythonRunnerExample
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = this;           
+            DataContext = this;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             string userScript = PYText.Text;
             PythonRunner runner = new PythonRunner();
-            runner.onNewstdout = UpdateStdout;
-            runner.RunAndGetValues(userScript, new string[] { "outVal", "outPos" },
-                (PythonRunResult pythonResult) =>
+           // runner.onNewstdout = UpdateStdout;
+            runner.RunAndGetValues(userScript, new string[] { "outVal", "outPos", "oo" },
+                (PythonRunner mRunner, PythonRunResult pythonResult) =>
                 {
-                    DisplayResult(pythonResult);
+                    DisplayResult(mRunner, pythonResult);
                 });
+            
         }
 
         void UpdateStdout(PythonRunner runner)
@@ -36,22 +40,21 @@ namespace PythonRunnerExample
             Application.Current.Dispatcher.Invoke(new Action(() => { StdoutDisp.Text = runner.stdout; }));
         }
 
-        void DisplayResult(PythonRunResult result)
+        void DisplayResult(PythonRunner runner, PythonRunResult result)
         {
             if (result.hasError)
             {
-                //MessageBox.Show("error:\n" + result.errorString);
+                Application.Current.Dispatcher.Invoke(new Action(() => { StdoutDisp.Text = "\n" + result.errorString; }));
             }
             else
             {
                 string tableStr = "";
                 foreach (DictionaryEntry de in result.returnedValues)
                 {
-                    tableStr += de.Key + "=" + de.Value + "\n";
+                    tableStr += de.Key + "=" + de.Value + "(" + de.Value.GetType() + ")\n";
                 }
-                Application.Current.Dispatcher.Invoke(new Action(() => { StdoutDisp.Text += "\n" + tableStr; }));
+                Application.Current.Dispatcher.Invoke(new Action(() => { StdoutDisp.Text = runner.stdout + "\n" + tableStr; }));
             }
-            //MessageBox.Show("ran in " + s.ElapsedMilliseconds + " ms");
         }
     }
 }
