@@ -10,12 +10,37 @@ namespace PythonRunnerNameSpace
 {
     public class PythonRunner
     {
+        /// <summary>
+        /// for now this is defined by hand, it will one day be defined by not hand (by foot may be ?)
+        /// </summary>
         private const string PYTHON_PATH = @"C:\Users\Plenituz\AppData\Local\Programs\Python\Python36-32\python.exe";
+        /// <summary>
+        /// this too, it should propably be user defined
+        /// </summary>
         private const string SCRIPT_PATH = @"C:\Users\Plenituz\Desktop\tmp\test.py";
         private Process process;
+        /// <summary>
+        /// store only the stdout given by the process.
+        /// We keep them separate to more easily detect the errors and tracebacks sent by python
+        /// </summary>
         private string partialStdout = "";
+        /// <summary>
+        /// store only the stderr given by the process
+        /// We keep them separate to more easily detect the errors and tracebacks sent by python
+        /// </summary>
         private string partialStderr = "";
+        /// <summary>
+        /// store stdout and stderr given by the process, this
+        /// is what the user should see
+        /// </summary>
         private string _stdout = "";
+        /// <summary>
+        /// this is true when we reach the end of the stdout from the actual python program
+        /// the user inputed. after that it's out cutom that's going to output the
+        /// extracted values. 
+        /// So when this is true we stop calling "onNewstdout", but keep storing values in _stdout
+        /// the value of _stdout gets cleaned of our custom output when the process ends
+        /// </summary>
         private bool stopStdout = false;
 
         public string stdout {
@@ -43,6 +68,7 @@ namespace PythonRunnerNameSpace
             Task.Run(() =>
             {
                 PythonRunResult result = RunProcess();
+                //remove the custom output allowing us to extract variables from python
                 CleanStdout();
                 onTaskEnd?.Invoke(this, result);
             });
@@ -67,8 +93,12 @@ namespace PythonRunnerNameSpace
         private PythonRunResult RunProcess()
         {
             process.Start();
+            //the next 2 lines tell the process to send stdout and stderr to 
+            //"StdoutDataReceived" and "StderrDataReceived" as it comes
+            //as exaplained this doesn't work for me, might for you so I kept it like that
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            //we wait for the process, that's why you should call this in another thread
             process.WaitForExit();
             process.Close();
             return InterpretResult(partialStdout, partialStderr);
@@ -84,8 +114,11 @@ namespace PythonRunnerNameSpace
         {
             if (!string.IsNullOrEmpty(outLine.Data))
             {
+                //update storage for stdout only (not stderr) and the common stdout the user sees
                 partialStdout += outLine.Data + "\n";
                 _stdout += outLine.Data + "\n";
+                //if our end of script print shows up, don't update the user on the next infos 
+                //so we can clean it before showing it
                 if (outLine.Data.Contains("ENDUSEROUTPUT"))
                     stopStdout = true;
                 if(!stopStdout)
@@ -144,6 +177,15 @@ namespace PythonRunnerNameSpace
             stopStdout = false;
 
             //add the custom code to the python file
+            /*
+             * prevPArt contains code that makes sure the variable we extract are defined (in the python script)
+             * strPart is the first part of our print statement that extracts our values
+             * it looks something like that in the end : %s=%s|%s=%s|%s=%s
+             * varPart is the other half of that statement 
+             * it looks like this : "outVal1",outVal1,"outVal2",outVal2
+             * in the end the print statement looks like 
+             * print("%s=%s|%s=%s" % ("outVal1", outVal1, "outVal2", outVal2))
+             */
             StringBuilder prevPart = new StringBuilder();
             StringBuilder strPart = new StringBuilder("\"");
             StringBuilder varPart = new StringBuilder("(");
@@ -158,11 +200,8 @@ namespace PythonRunnerNameSpace
             varPart.Append(")");
             string varStr = strPart.ToString() + " % " + varPart.ToString();
 
-            pythonCode +=
-@"
-print('ENDUSEROUTPUT')
-$
-print($$$)".Replace("$$$", varStr).Replace("$", prevPart.ToString());
+            pythonCode +=@"\nprint('ENDUSEROUTPUT')\n$\nprint($$$)"
+                    .Replace("$$$", varStr).Replace("$", prevPart.ToString());
             File.WriteAllText(SCRIPT_PATH, pythonCode);
 
             //prepare the process
@@ -191,7 +230,7 @@ print($$$)".Replace("$$$", varStr).Replace("$", prevPart.ToString());
             //first check if there is and error if so stop
             if (!string.IsNullOrWhiteSpace(error))
             {
-                //return run result avec le message d'erreur envoyé par python
+                //return run result with the traceback python gave us
                 PythonRunResult pythonRunResult = new PythonRunResult()
                 {
                     hasError = true,
@@ -237,11 +276,17 @@ print($$$)".Replace("$$$", varStr).Replace("$", prevPart.ToString());
             }
         }
 
+        /// <summary>
+        /// tries to convert the string into an int or a float
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns>the string as an int or a float, if prossible, otherwise you get the string back</returns>
         private object TryConvert(string str)
         {
             //only convert if necessary
             if (!convertValues)
                 return str;
+            //try parse int and float if it doesn't work, return the string
             int outInt;
             bool succeded = int.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out outInt);
             if (succeded)
