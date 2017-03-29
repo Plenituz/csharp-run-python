@@ -10,6 +10,8 @@ namespace PythonRunnerExample
     /// </summary>
     public partial class MainWindow : Window
     {
+        PythonRunner runner;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -19,14 +21,14 @@ namespace PythonRunnerExample
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             string userScript = PYText.Text;
-            PythonRunner runner = new PythonRunner();
+            runner = new PythonRunner();
            // runner.onNewstdout = UpdateStdout;
             runner.RunAndGetValues(userScript, new string[] { "outVal", "outPos", "oo" },
                 (PythonRunner mRunner, PythonRunResult pythonResult) =>
                 {
                     DisplayResult(mRunner, pythonResult);
                 });
-            
+            StdoutDisp.Text = "Python is running...";
         }
 
         void UpdateStdout(PythonRunner runner)
@@ -49,6 +51,11 @@ namespace PythonRunnerExample
                 }
                 Application.Current.Dispatcher.Invoke(new Action(() => { StdoutDisp.Text = runner.stdout + "\n" + tableStr; }));
             }
+        }
+
+        private void KillProcessBtn_Click(object sender, RoutedEventArgs e)
+        {
+            runner?.KillProcess();
         }
     }
 }

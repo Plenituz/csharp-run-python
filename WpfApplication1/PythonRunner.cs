@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace PythonRunnerNameSpace
 {
@@ -65,7 +66,7 @@ namespace PythonRunnerNameSpace
         /// </summary>
         private void RunTask()
         {
-            Task.Run(() =>
+            Task t = Task.Run(() =>
             {
                 PythonRunResult result = RunProcess();
                 //remove the custom output allowing us to extract variables from python
@@ -101,6 +102,7 @@ namespace PythonRunnerNameSpace
             //we wait for the process, that's why you should call this in another thread
             process.WaitForExit();
             process.Close();
+            process = null;
             return InterpretResult(partialStdout, partialStderr);
         }
 
@@ -141,6 +143,19 @@ namespace PythonRunnerNameSpace
                 if (!stopStdout)
                     onNewstdout?.Invoke(this);
             }
+        }
+
+        public void KillProcess()
+        {
+            try
+            {
+                process?.Kill();
+            }
+            catch (InvalidOperationException)
+            {
+                Console.WriteLine("process was invalid when trying to kill it (PythonRunner)");
+            }
+            
         }
 
         /// <summary>
@@ -200,7 +215,7 @@ namespace PythonRunnerNameSpace
             varPart.Append(")");
             string varStr = strPart.ToString() + " % " + varPart.ToString();
 
-            pythonCode +=@"\nprint('ENDUSEROUTPUT')\n$\nprint($$$)"
+            pythonCode += "\nprint('ENDUSEROUTPUT')\n$\nprint($$$)"
                     .Replace("$$$", varStr).Replace("$", prevPart.ToString());
             File.WriteAllText(SCRIPT_PATH, pythonCode);
 
@@ -231,25 +246,36 @@ namespace PythonRunnerNameSpace
             if (!string.IsNullOrWhiteSpace(error))
             {
                 //return run result with the traceback python gave us
-                PythonRunResult pythonRunResult = new PythonRunResult()
+                return new PythonRunResult()
                 {
                     hasError = true,
                     errorString = error
                 };
-                return pythonRunResult;
             }
-
+            //if the result (stdout) is empty then something wrong happened
+            //same if the result doesn't contain what our custom code printed
+            if (string.IsNullOrWhiteSpace(result) || !result.Contains("ENDUSEROUTPUT"))
+            {
+                //no stdout that means the process was killed before finishing
+                //or if there is no "ENDUSEROUTPUT" that means out custom code didn't have time to run
+                return new PythonRunResult()
+                {
+                    hasError = true,
+                    errorString = "the python process was killed"
+                };
+            }
+            //from there on we are sure the process finished sucessfully
             //split where the python printed "ENDUSEROUTPUT", this should only have been printed once
             //therefore the string[] should only have 2 elements in it
-            string[] resultArr = result.Split(new string[] { "ENDUSEROUTPUT" }, StringSplitOptions.None); 
-            //if it doesn't have only 2 elements that means the user printed "ENDUSEROUTPUT" himself (weirdo)           
+            string[] resultArr = result.Split(new string[] { "ENDUSEROUTPUT" }, StringSplitOptions.None);
+            //if it doesn't have only 2 elements that means the user printed "ENDUSEROUTPUT" himself (weirdo)  
             if (resultArr.Length != 2)
             {
                 //return run result with custom error message 
                 PythonRunResult pythonRunResult = new PythonRunResult()
                 {
                     hasError = true,
-                    errorString = "You can't print \"ENDUSEROUTPUT\""
+                    errorString = "You can't print \"ENDUSEROUTPUT\" or an unexpected case happened"
                 };
                 return pythonRunResult;
             }

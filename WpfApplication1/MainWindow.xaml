@@ -19,7 +19,8 @@
         <TextBox Name="PYText" Grid.Row="0" AcceptsTab="True" TextWrapping="Wrap" AcceptsReturn="True">python code here</TextBox>
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
         <TextBlock Name="StdoutDisp" Grid.Row="0" Grid.Column="2" TextWrapping="Wrap"/>
-        <Button Grid.Row="1" Grid.ColumnSpan="3" Click="Button_Click">Run code</Button>
+        <Button Grid.Row="1" Click="Button_Click">Run code</Button>
+        <Button Grid.Row="1" Grid.Column="2" Name="KillProcessBtn" Click="KillProcessBtn_Click">Kill Process</Button>
     </Grid>
 
 
