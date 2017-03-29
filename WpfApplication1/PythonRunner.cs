@@ -102,6 +102,7 @@ namespace PythonRunnerNameSpace
             //we wait for the process, that's why you should call this in another thread
             process.WaitForExit();
             process.Close();
+            process.Dispose();
             process = null;
             return InterpretResult(partialStdout, partialStderr);
         }
@@ -154,6 +155,8 @@ namespace PythonRunnerNameSpace
             catch (InvalidOperationException)
             {
                 Console.WriteLine("process was invalid when trying to kill it (PythonRunner)");
+                process.Dispose();
+                process = null;
             }
             
         }
