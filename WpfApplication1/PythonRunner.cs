@@ -52,6 +52,10 @@ namespace PythonRunnerNameSpace
         /// </summary>
         public bool convertValues = true;
         /// <summary>
+        /// if this is false the process will block the thread until it finishes
+        /// </summary>
+        public bool runInBackground = true;
+        /// <summary>
         /// called when the runner finished running
         /// </summary>
         public Action<PythonRunner, PythonRunResult> onTaskEnd;
@@ -66,13 +70,30 @@ namespace PythonRunnerNameSpace
         /// </summary>
         private void RunTask()
         {
-            Task t = Task.Run(() =>
+            PythonRunResult result = new PythonRunResult();
+            Task task = Task.Factory.StartNew(() => {
+                result = RunProcess();
+                //remove the custom output allowing us to extract variables from python
+                CleanStdout();
+                if(runInBackground)
+                    onTaskEnd?.Invoke(this, result);
+            });
+            if (!runInBackground)
+            {
+                task.Wait();
+                onTaskEnd?.Invoke(this, result);
+            }
+/*
+            Task task = Task.Run(() =>
             {
                 PythonRunResult result = RunProcess();
                 //remove the custom output allowing us to extract variables from python
                 CleanStdout();
                 onTaskEnd?.Invoke(this, result);
             });
+            if (!runInBackground)
+                task.Wait();
+                */
         }
 
         /// <summary>
@@ -88,7 +109,7 @@ namespace PythonRunnerNameSpace
 
         /// <summary>
         /// Do the actual running of the python process
-        /// This should be called in a Task
+        /// This should be called in a Task, or will be thread blocking
         /// </summary>
         /// <returns>A PythonRunResult object containing the result of the process</returns>
         private PythonRunResult RunProcess()
@@ -169,7 +190,8 @@ namespace PythonRunnerNameSpace
         /// <param name="pythonCode">The code to run in python</param>
         /// <param name="valueNames">The name of the variables to extract</param>
         /// <param name="onTaskEnd">an Action called when the python code is done running</param>
-        public void RunAndGetValues(string pythonCode, string[] valueNames, Action<PythonRunner, PythonRunResult> onTaskEnd)
+        public void RunAndGetValues(string pythonCode, string[] valueNames, 
+            Action<PythonRunner, PythonRunResult> onTaskEnd)
         {
             /*
              * The way this works is as follow : 
