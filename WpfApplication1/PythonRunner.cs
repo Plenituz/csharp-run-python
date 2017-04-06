@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -47,6 +48,16 @@ namespace PythonRunnerNameSpace
         public string stdout {
             get { return _stdout; }
         }
+
+        /// <summary>
+        /// the variable names to extract at the end of the python code
+        /// </summary>
+        public List<string> extractedValues = new List<string>();
+        /// <summary>
+        /// the name/value combination of variables to 
+        /// inject at the begining of the script
+        /// </summary>
+        public Dictionary<string, object> injectedValues = new Dictionary<string, object>();
         /// <summary>
         /// if this is false the values extracted will all be string, but you might earn some ms
         /// </summary>
@@ -64,7 +75,6 @@ namespace PythonRunnerNameSpace
         /// </summary>
         public Action<PythonRunner> onNewstdout;
         
-
         /// <summary>
         /// run the python code in a task
         /// </summary>
@@ -83,17 +93,6 @@ namespace PythonRunnerNameSpace
                 task.Wait();
                 onTaskEnd?.Invoke(this, result);
             }
-/*
-            Task task = Task.Run(() =>
-            {
-                PythonRunResult result = RunProcess();
-                //remove the custom output allowing us to extract variables from python
-                CleanStdout();
-                onTaskEnd?.Invoke(this, result);
-            });
-            if (!runInBackground)
-                task.Wait();
-                */
         }
 
         /// <summary>
@@ -188,10 +187,8 @@ namespace PythonRunnerNameSpace
         /// if he doesn't declare one of the values you will get it back as "None"
         /// </summary>
         /// <param name="pythonCode">The code to run in python</param>
-        /// <param name="valueNames">The name of the variables to extract</param>
         /// <param name="onTaskEnd">an Action called when the python code is done running</param>
-        public void RunAndGetValues(string pythonCode, string[] valueNames, 
-            Action<PythonRunner, PythonRunResult> onTaskEnd)
+        public void RunAndGetValues(string pythonCode, Action<PythonRunner, PythonRunResult> onTaskEnd)
         {
             /*
              * The way this works is as follow : 
@@ -217,33 +214,9 @@ namespace PythonRunnerNameSpace
             stopStdout = false;
 
             //add the custom code to the python file
-            /*
-             * prevPArt contains code that makes sure the variable we extract are defined (in the python script)
-             * strPart is the first part of our print statement that extracts our values
-             * it looks something like that in the end : %s=%s|%s=%s|%s=%s
-             * varPart is the other half of that statement 
-             * it looks like this : "outVal1",outVal1,"outVal2",outVal2
-             * in the end the print statement looks like 
-             * print("%s=%s|%s=%s" % ("outVal1", outVal1, "outVal2", outVal2))
-             */
-            StringBuilder prevPart = new StringBuilder();
-            StringBuilder strPart = new StringBuilder("\"");
-            StringBuilder varPart = new StringBuilder("(");
-            for(int i = 0; i < valueNames.Length; i++)
-            {
-                prevPart.Append("\ntry:\n\t" + valueNames[i] + "\nexcept NameError:\n\t" + valueNames[i] + "=None");
-                strPart.Append("%s=%s" + (i != valueNames.Length-1 ? "|" : ""));
-                varPart.Append("\"" + valueNames[i] + "\", " + valueNames[i] + 
-                    (i != valueNames.Length-1 ? "," : ""));
-            }
-            strPart.Append("\"");
-            varPart.Append(")");
-            string varStr = strPart.ToString() + " % " + varPart.ToString();
-
-            pythonCode += "\nprint('ENDUSEROUTPUT')\n$\nprint($$$)"
-                    .Replace("$$$", varStr).Replace("$", prevPart.ToString());
+            pythonCode = GetVarInsertionString() + pythonCode;
+            pythonCode += GetVarExtractionString();
             File.WriteAllText(SCRIPT_PATH, pythonCode);
-
             //prepare the process
             process = new Process();
             process.StartInfo = new ProcessStartInfo();
@@ -257,6 +230,61 @@ namespace PythonRunnerNameSpace
             process.ErrorDataReceived += new DataReceivedEventHandler(StderrDataReceived);
             //run the python code in another thread
             RunTask();
+        }
+
+        private string GetVarInsertionString()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach(KeyValuePair<string, object> variable in injectedValues)
+            {
+                builder.Append(variable.Key + " = " + FormatVar(variable.Value));
+                builder.Append("\n");
+            }
+            return builder.ToString();
+        }
+
+        private string FormatVar(object variable)
+        {
+            Type type = variable.GetType();
+            if(type == typeof(string))
+            {
+                return "\'" + variable + "\'";
+            }
+            else
+            {
+                return string.Format(CultureInfo.InvariantCulture, "{0:#.#############################}", variable);
+            }
+        }
+
+        private string GetVarExtractionString()
+        {
+            /*
+             * prevPart contains code that makes sure the variable we extract are defined (in the python script)
+             * strPart is the first part of our print statement that extracts our values
+             * it looks something like that in the end : %s=%s|%s=%s|%s=%s
+             * varPart is the other half of that statement 
+             * it looks like this : "outVal1",outVal1,"outVal2",outVal2
+             * in the end the print statement looks like 
+             * print("%s=%s|%s=%s" % ("outVal1", outVal1, "outVal2", outVal2))
+             */
+            StringBuilder prevPart = new StringBuilder();
+            StringBuilder strPart = new StringBuilder("\"");
+            StringBuilder varPart = new StringBuilder("(");
+            for (int i = 0; i < extractedValues.Count; i++)
+            {
+                prevPart.Append("\ntry:\n\t" + extractedValues[i] + "\nexcept NameError:\n\t"
+                    + extractedValues[i] + "=None");
+                strPart.Append("%s=%s" + (i != extractedValues.Count - 1 ? "|" : ""));
+                varPart.Append("\"" + extractedValues[i] + "\", " + extractedValues[i] +
+                    (i != extractedValues.Count - 1 ? "," : ""));
+            }
+            strPart.Append("\"");
+            varPart.Append(")");
+            string varStr = strPart.ToString() + " % " + varPart.ToString();
+
+            return "\nprint('ENDUSEROUTPUT')\n$\nprint($$$)"
+                    .Replace("$$$", varStr).Replace("$", prevPart.ToString());
+            
         }
 
         /// <summary>
