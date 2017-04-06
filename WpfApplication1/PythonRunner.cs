@@ -252,7 +252,14 @@ namespace PythonRunnerNameSpace
             }
             else
             {
-                return string.Format(CultureInfo.InvariantCulture, "{0:#.#############################}", variable);
+                string varStr = string.Format(
+                    CultureInfo.InvariantCulture, "{0:#.#############################}", variable);
+                //try to parse the string to determine if it's a valid double
+                double tmp;
+                if (!double.TryParse(varStr, NumberStyles.Float | NumberStyles.AllowThousands,
+                CultureInfo.InvariantCulture, out tmp))
+                    throw new ArgumentException("the variable is of an unknown type : " + varStr);
+                return varStr;
             }
         }
 

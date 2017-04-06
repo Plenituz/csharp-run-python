@@ -28,6 +28,7 @@ namespace PythonRunnerExample
             runner.injectedValues.Add("inFloat", 5.88934849f);
             runner.injectedValues.Add("inDouble", 7.19393034853845);
             runner.injectedValues.Add("inLongNumber", 1283127.19393034853845);
+           // runner.injectedValues.Add("inWeird", new PythonRunResult());//this throws an error
             // runner.onNewstdout = UpdateStdout;
             /*
              * try using the following python code to test
