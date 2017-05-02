@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace PythonRunnerNameSpace
 {
@@ -6,6 +7,6 @@ namespace PythonRunnerNameSpace
     {
         public bool hasError;
         public string errorString;
-        public Hashtable returnedValues;
+        public Dictionary<string, object> returnedValues;
     }
 }

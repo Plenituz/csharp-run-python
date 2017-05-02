@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Windows;
 using PythonRunnerNameSpace;
+using System.Collections.Generic;
 
 namespace PythonRunnerExample
 {
@@ -85,7 +86,7 @@ namespace PythonRunnerExample
             else
             {
                 string tableStr = "";
-                foreach (DictionaryEntry de in result.returnedValues)
+                foreach (KeyValuePair<string, object> de in result.returnedValues)
                 {
                     tableStr += de.Key + "=" + de.Value + "(" + de.Value.GetType() + ")\n";
                 }
@@ -102,7 +103,7 @@ namespace PythonRunnerExample
             else
             {
                 string tableStr = "";
-                foreach (DictionaryEntry de in result.returnedValues)
+                foreach (KeyValuePair<string, object> de in result.returnedValues)
                 {
                     tableStr += de.Key + "=" + de.Value + "(" + de.Value.GetType() + ")\n";
                 }

@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace PythonRunnerNameSpace
 {
@@ -15,7 +14,7 @@ namespace PythonRunnerNameSpace
         /// <summary>
         /// for now this is defined by hand, it will one day be defined by not hand (by foot may be ?)
         /// </summary>
-        private const string PYTHON_PATH = @"C:\Users\Plenituz\AppData\Local\Programs\Python\Python36-32\python.exe";
+        private string PYTHON_PATH = @"C:\Users\Plenituz\AppData\Local\Programs\Python\Python36-32\python.exe";
         /// <summary>
         /// this too, it should propably be user defined
         /// </summary>
@@ -342,7 +341,7 @@ namespace PythonRunnerNameSpace
             else
             {
                 //return run result without and error and a hashtable filled with the extracted variables
-                Hashtable table = new Hashtable();
+                Dictionary<string, object> table = new Dictionary<string, object>();
                 //the output will look something like this : "outVal1=5|outVal2=value"
                 //each var is separated by a |
                 string[] vars = resultArr[1].Split('|');
