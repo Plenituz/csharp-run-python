@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -14,7 +13,7 @@ namespace PythonRunnerNameSpace
         /// <summary>
         /// for now this is defined by hand, it will one day be defined by not hand (by foot may be ?)
         /// </summary>
-        private string PYTHON_PATH = @"C:\Users\Plenituz\AppData\Local\Programs\Python\Python36-32\python.exe";
+        private string PYTHON_PATH = @"C:\Users\Plenituz\AppData\Local\Programs\Python\Python36-32\python.exe";//@"C:\_CODING\pypy2-v5.8.0-win32\pypy.exe";
         /// <summary>
         /// this too, it should propably be user defined
         /// </summary>
@@ -103,6 +102,9 @@ namespace PythonRunnerNameSpace
             int index = stdout.IndexOf("ENDUSEROUTPUT");
             if(index != -1)
                 _stdout = stdout.Substring(0, index);
+            //put the cleaned up version of stout into partialstdout so next time you call
+            //"RunAndGetValues", you 
+            partialStdout = _stdout;
         }
 
         /// <summary>
@@ -334,7 +336,7 @@ namespace PythonRunnerNameSpace
                 PythonRunResult pythonRunResult = new PythonRunResult()
                 {
                     hasError = true,
-                    errorString = "You can't print \"ENDUSEROUTPUT\" or an unexpected case happened"
+                    errorString = "You can't print \"ENDUSEROUTPUT\", or an unexpected case happened"
                 };
                 return pythonRunResult;
             }

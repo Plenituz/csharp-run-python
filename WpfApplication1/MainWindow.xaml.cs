@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Windows;
 using PythonRunnerNameSpace;
 using System.Collections.Generic;
@@ -17,11 +16,7 @@ namespace PythonRunnerExample
         {
             InitializeComponent();
             DataContext = this;
-        }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            string userScript = PYText.Text;
             runner = new PythonRunner();
             runner.extractedValues.AddRange(new string[] { "outVal", "outPos", "oo" });
             runner.injectedValues.Add("inInt", 5);
@@ -29,7 +24,8 @@ namespace PythonRunnerExample
             runner.injectedValues.Add("inFloat", 5.88934849f);
             runner.injectedValues.Add("inDouble", 7.19393034853845);
             runner.injectedValues.Add("inLongNumber", 1283127.19393034853845);
-           // runner.injectedValues.Add("inWeird", new PythonRunResult());//this throws an error
+
+            // runner.injectedValues.Add("inWeird", new PythonRunResult());//this throws an error
             // runner.onNewstdout = UpdateStdout;
             /*
              * try using the following python code to test
@@ -45,7 +41,11 @@ namespace PythonRunnerExample
             print(type(inLongNumber)) 
              
              */
+        }
 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            string userScript = PYText.Text;
             //comment/uncomment the next line to switch between async/thread blocking
             //*/
             //Async example
@@ -53,7 +53,7 @@ namespace PythonRunnerExample
             runner.RunAndGetValues(userScript,
                 (PythonRunner mRunner, PythonRunResult pythonResult) =>
                 {
-                  //  this will happen on the end of the process on the process's thread
+                    //  this will happen on the end of the process on the process's thread
                     DisplayResult(mRunner, pythonResult);
                 });
             StdoutDisp.Text = "Python is running...";
