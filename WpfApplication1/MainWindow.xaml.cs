@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
-using PythonRunnerNameSpace;
 using System.Collections.Generic;
+using PythonRunning;
 
 namespace PythonRunnerExample
 {
@@ -10,44 +10,65 @@ namespace PythonRunnerExample
     /// </summary>
     public partial class MainWindow : Window
     {
-        PythonRunner runner;
+        PythonRunner2 runner;
+        PythonProxyClass proxy = new PythonProxyClass();
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
+            runner = new PythonRunner2(proxy);
+            runner.OnStdOutUpdate += OnStdUpdate;
+            runner.OnStdErrUpdate += OnStdUpdate;
+            runner.OnDoneCompiling += Runner_OnDoneCompiling;
+            runner.OnDoneRunning += Runner_OnDoneRunning;
+            runner.OnValueUpdatedOnProxy += (name, prx) =>
+            {
+                Console.WriteLine(proxy.StringProperty);
+            };            
+        }
 
-            runner = new PythonRunner();
-            runner.extractedValues.AddRange(new string[] { "outVal", "outPos", "oo" });
-            runner.injectedValues.Add("inInt", 5);
-            runner.injectedValues.Add("inString", "it works pretty well");
-            runner.injectedValues.Add("inFloat", 5.88934849f);
-            runner.injectedValues.Add("inDouble", 7.19393034853845);
-            runner.injectedValues.Add("inLongNumber", 1283127.19393034853845);
+        private void Runner_OnDoneRunning()
+        {
+            Application.Current.Dispatcher.Invoke(new Action(() =>
+            {
+                StdoutDisp.Text = runner.OverallOut;
+            }));
+        }
 
-            // runner.injectedValues.Add("inWeird", new PythonRunResult());//this throws an error
-            // runner.onNewstdout = UpdateStdout;
-            /*
-             * try using the following python code to test
-            print(inInt)
-            print(inString)
-            print(inFloat)
-            print(inDouble)
-            print(inLongNumber)
-            print(type(inInt))
-            print(type(inString))
-            print(type(inFloat))
-            print(type(inDouble))
-            print(type(inLongNumber)) 
-             
-             */
+        private void Runner_OnDoneCompiling()
+        {
+            proxy.IntProperty = 60;
+            proxy.FloatProperty = 50.34f;
+            Application.Current.Dispatcher.Invoke(new Action(() =>
+            {
+                StdoutDisp.Text = runner.OverallOut;
+            }));
+        }
+
+        /// <summary>
+        /// this is not called in the main thread
+        /// </summary>
+        /// <param name="stdouts"></param>
+        private void OnStdUpdate(string stdouts)
+        {
+            Application.Current.Dispatcher.Invoke(new Action(() => { StdoutDisp.Text = runner.OverallOut; }));
+        }
+
+        private void CompileBut_Click(object sender, RoutedEventArgs e)
+        {
+            runner.Compile(PYText.Text);
+        }
+
+        private void RunBut_Click(object sender, RoutedEventArgs e)
+        {
+            runner.Run();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            string userScript = PYText.Text;
             //comment/uncomment the next line to switch between async/thread blocking
-            //*/
+            /*
             //Async example
             //by default the process will run in a background task
             runner.RunAndGetValues(userScript,
@@ -58,7 +79,7 @@ namespace PythonRunnerExample
                 });
             StdoutDisp.Text = "Python is running...";
             
-            /*/
+            
             //thread blocking example
             runner.runInBackground = false;
             //this next method is now thread blocking
@@ -68,8 +89,7 @@ namespace PythonRunnerExample
                     //this will happen at the end of the run but on the main thread this time
                     DisplayResultSameThread(mRunner, pythonResult);
                 });
-            //*/
-            
+            */
         }
 
         void UpdateStdout(PythonRunner runner)
@@ -113,7 +133,7 @@ namespace PythonRunnerExample
 
         private void KillProcessBtn_Click(object sender, RoutedEventArgs e)
         {
-            runner?.KillProcess();
+            //runner?.KillProcess();
         }
     }
 }

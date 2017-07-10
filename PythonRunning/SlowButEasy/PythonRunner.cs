@@ -6,18 +6,18 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PythonRunnerNameSpace
+namespace PythonRunning
 {
     public class PythonRunner
     {
         /// <summary>
         /// for now this is defined by hand, it will one day be defined by not hand (by foot may be ?)
         /// </summary>
-        private string PYTHON_PATH = @"C:\Users\Plenituz\AppData\Local\Programs\Python\Python36-32\python.exe";//@"C:\_CODING\pypy2-v5.8.0-win32\pypy.exe";
+        private static string PYTHON_PATH = @"C:\Users\Plenituz\AppData\Local\Programs\Python\Python36-32\python.exe";//@"C:\_CODING\pypy2-v5.8.0-win32\pypy.exe";
         /// <summary>
         /// this too, it should propably be user defined
         /// </summary>
-        private const string SCRIPT_PATH = @"C:\Users\Plenituz\Desktop\tmp\test.py";
+        private static string SCRIPT_PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp.py");
         private Process process;
         /// <summary>
         /// store only the stdout given by the process.
@@ -120,6 +120,7 @@ namespace PythonRunnerNameSpace
             //as exaplained this doesn't work for me, might for you so I kept it like that
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            process.StandardInput.WriteLine("print('ceci est un test reussi')");
             //we wait for the process, that's why you should call this in another thread
             process.WaitForExit();
             process.Close();
@@ -226,6 +227,7 @@ namespace PythonRunnerNameSpace
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardInput = true;
             process.StartInfo.CreateNoWindow = true;
             process.OutputDataReceived += new DataReceivedEventHandler(StdoutDataReceived);
             process.ErrorDataReceived += new DataReceivedEventHandler(StderrDataReceived);

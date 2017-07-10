@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PythonRunner", "WpfApplication1\PythonRunner.csproj", "{5264A749-E651-47B1-9532-5963D1BDE780}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PythonRunning", "PythonRunning\PythonRunning.csproj", "{46A9A75D-3199-4E31-85F1-B72DC74056EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5264A749-E651-47B1-9532-5963D1BDE780}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5264A749-E651-47B1-9532-5963D1BDE780}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5264A749-E651-47B1-9532-5963D1BDE780}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46A9A75D-3199-4E31-85F1-B72DC74056EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46A9A75D-3199-4E31-85F1-B72DC74056EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46A9A75D-3199-4E31-85F1-B72DC74056EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46A9A75D-3199-4E31-85F1-B72DC74056EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
