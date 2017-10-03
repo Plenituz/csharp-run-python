@@ -8,3 +8,6 @@ Usage :
 even thought PythonRunner is not thread blocking, it is not meant to be used to launch several python process at the same time.
 If you want to run several python scripts at once you have to create several PythonRunner objects.
 That being said you can reuse a PythonRunner once it's done to run a completely different script with different extracted values.
+
+NOTE:
+This is just a fun hack you should probably use IronPython if you want to actually run python from C#
