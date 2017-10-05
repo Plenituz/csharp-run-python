@@ -11,3 +11,6 @@ That being said you can reuse a PythonRunner once it's done to run a completely 
 
 NOTE:
 This is just a fun hack you should probably use IronPython if you want to actually run python from C#
+
+NOTE2:
+I added a new way of running python from c# in the "PythonRunning/Faster" directory, it's not fully tested/finished yet. You can find the older version in "PythonRunning/SlowButEasy" directory. Don't let the names fool you, they are both very slow methods.
